@@ -9,7 +9,8 @@ import (
 )
 
 func main() {
-	fetchLinks("https://api.github.com/repos/jonascarpay/Wallpapers/contents/papes")
+	var links = fetchLinks("https://api.github.com/repos/jonascarpay/Wallpapers/contents/papes")
+	downloadFiles(links)
 }
 
 // generated with help of https://mholt.github.io/json-to-go/
@@ -41,8 +42,6 @@ func fetchLinks(link string) []links {
 
 	body, _ := ioutil.ReadAll(res.Body)
 
-	//fmt.Print(string(body))
-
 	if err := json.Unmarshal(body, &linkslist); err != nil {
 		fmt.Println("Can not unmarshal JSON")
 	}
@@ -53,4 +52,10 @@ func fetchLinks(link string) []links {
 	// }
 	//fmt.Println(dloadLinks)
 	return linkslist
+}
+
+func downloadFiles(links []links) {
+	for _, link := range links {
+		fmt.Println(link)
+	}
 }
