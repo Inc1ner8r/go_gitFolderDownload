@@ -8,12 +8,22 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 )
 
 func main() {
-	var links = fetchLinks("https://api.github.com/repos/jonascarpay/Wallpapers/contents/papes")
-	downloadFiles(links)
-	// testt()
+	var wg sync.WaitGroup
+
+	var links = fetchLinks("https://api.github.com/repos/inciner8r/sample_data/contents/")
+
+	fmt.Println(links)
+
+	for _, link := range links {
+		wg.Add(1)
+
+		go newFunction(link, wg)
+	}
+	wg.Wait()
 }
 
 // generated with help of https://mholt.github.io/json-to-go/
@@ -35,6 +45,7 @@ type links struct {
 }
 
 func fetchLinks(link string) []links {
+
 	var linkslist []links
 	res, err := http.Get(link)
 	if err != nil {
@@ -51,28 +62,30 @@ func fetchLinks(link string) []links {
 	return linkslist
 }
 
-func downloadFiles(links []links) {
-	for _, link := range links {
-		output, err := os.Create(link.Name)
-		if err != nil {
-			fmt.Println("Error while creating", "ok.jpg", "-", err)
-			return
-		}
-		defer output.Close()
-		response, err := http.Get(link.DownloadURL)
-		if err != nil {
-			fmt.Println("Error while downloading", link.DownloadURL, "-", err)
-			return
-		}
-		defer response.Body.Close()
-
-		n, err := io.Copy(output, response.Body)
-		if err != nil {
-			fmt.Println("Error while downloading", link.DownloadURL, "-", err)
-			return
-		}
-
-		fmt.Println(n, "bytes downloaded.")
+func newFunction(link links, wg sync.WaitGroup) {
+	fmt.Println("exec start")
+	output, err := os.Create("./downloads/" + link.Name)
+	if err != nil {
+		fmt.Println("Error while creating", "ok.jpg", "-", err)
+		log.Fatal()
 	}
+	defer output.Close()
+	response, err := http.Get(link.DownloadURL)
+	if err != nil {
+		fmt.Println("Error while downloading", link.DownloadURL, "-", err)
+		log.Fatal()
+
+	}
+	defer response.Body.Close()
+
+	n, err := io.Copy(output, response.Body)
+	if err != nil {
+		fmt.Println("Error while downloading", link.DownloadURL, "-", err)
+		log.Fatal()
+
+	}
+
+	fmt.Println(n, "bytes downloaded.")
+	wg.Done()
 
 }
