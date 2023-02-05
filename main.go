@@ -53,31 +53,26 @@ func fetchLinks(link string) []links {
 
 func downloadFiles(links []links) {
 	for _, link := range links {
-		fmt.Println(link)
-	}
-}
+		output, err := os.Create(link.Name)
+		if err != nil {
+			fmt.Println("Error while creating", "ok.jpg", "-", err)
+			return
+		}
+		defer output.Close()
+		response, err := http.Get(link.DownloadURL)
+		if err != nil {
+			fmt.Println("Error while downloading", link.DownloadURL, "-", err)
+			return
+		}
+		defer response.Body.Close()
 
-func testt() {
-	url := "https://raw.githubusercontent.com/jonascarpay/Wallpapers/master/papes/018edcd90db7355e1a78b49247b17cc66e6ffe3851f5d2b3e49cab12001b115b.jpg"
+		n, err := io.Copy(output, response.Body)
+		if err != nil {
+			fmt.Println("Error while downloading", link.DownloadURL, "-", err)
+			return
+		}
 
-	output, err := os.Create("ok.jpg")
-	if err != nil {
-		fmt.Println("Error while creating", "ok.jpg", "-", err)
-		return
-	}
-	defer output.Close()
-	response, err := http.Get(url)
-	if err != nil {
-		fmt.Println("Error while downloading", url, "-", err)
-		return
-	}
-	defer response.Body.Close()
-
-	n, err := io.Copy(output, response.Body)
-	if err != nil {
-		fmt.Println("Error while downloading", url, "-", err)
-		return
+		fmt.Println(n, "bytes downloaded.")
 	}
 
-	fmt.Println(n, "bytes downloaded.")
 }
