@@ -3,19 +3,22 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
 	var links = fetchLinks("https://api.github.com/repos/jonascarpay/Wallpapers/contents/papes")
 	downloadFiles(links)
+	// testt()
 }
 
 // generated with help of https://mholt.github.io/json-to-go/
 type links struct {
-	// Name        string `json:"name"`
+	Name string `json:"name"`
 	// Path        string `json:"path"`
 	// Sha         string `json:"sha"`
 	// Size        int    `json:"size"`
@@ -45,12 +48,6 @@ func fetchLinks(link string) []links {
 	if err := json.Unmarshal(body, &linkslist); err != nil {
 		fmt.Println("Can not unmarshal JSON")
 	}
-	// Loop through the data node for the downloadURL
-	// for _, rec := range links {
-	// 	//fmt.Println(rec)
-	// 	dloadLinks = append(dloadLinks, rec.DownloadURL)
-	// }
-	//fmt.Println(dloadLinks)
 	return linkslist
 }
 
@@ -58,4 +55,29 @@ func downloadFiles(links []links) {
 	for _, link := range links {
 		fmt.Println(link)
 	}
+}
+
+func testt() {
+	url := "https://raw.githubusercontent.com/jonascarpay/Wallpapers/master/papes/018edcd90db7355e1a78b49247b17cc66e6ffe3851f5d2b3e49cab12001b115b.jpg"
+
+	output, err := os.Create("ok.jpg")
+	if err != nil {
+		fmt.Println("Error while creating", "ok.jpg", "-", err)
+		return
+	}
+	defer output.Close()
+	response, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error while downloading", url, "-", err)
+		return
+	}
+	defer response.Body.Close()
+
+	n, err := io.Copy(output, response.Body)
+	if err != nil {
+		fmt.Println("Error while downloading", url, "-", err)
+		return
+	}
+
+	fmt.Println(n, "bytes downloaded.")
 }
