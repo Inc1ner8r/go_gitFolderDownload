@@ -12,25 +12,23 @@ import (
 
 func main() {
 
-	outString := make(chan string)
-	outInt := make(chan string)
+	outName := make(chan string)
+	outSize := make(chan string)
 	var links = fetchLinks("https://api.github.com/repos/inciner8r/sample_data/contents/")
 	makedir()
-	fmt.Println(links)
 
 	for _, link := range links {
 
-		go newFunction(link, outString, outInt)
+		go download(link, outName, outSize)
 	}
 	for i := 0; i < len(links); i++ {
-		msg := <-outString
-		msgInt := <-outInt
+		name := <-outName
+		size := <-outSize
 
-		fmt.Println("filename - " + msg + "\nsize - " + string(msgInt))
+		fmt.Println("filename - " + name + "\nsize - " + size)
 	}
-	close(outInt)
-	close(outString)
-	fmt.Println("here")
+	close(outName)
+	close(outSize)
 }
 
 type links struct {
@@ -56,8 +54,7 @@ func fetchLinks(link string) []links {
 	return linkslist
 }
 
-func newFunction(link links, out chan string, out1 chan string) {
-	fmt.Println("exec start")
+func download(link links, outName chan string, outSize chan string) {
 	output, err := os.Create("./downloads/" + link.Name)
 	if err != nil {
 		fmt.Println("Error while creating", "ok.jpg", "-", err)
@@ -78,8 +75,8 @@ func newFunction(link links, out chan string, out1 chan string) {
 		log.Fatal()
 	}
 
-	out <- link.Name
-	out1 <- fmt.Sprint(n)
+	outName <- link.Name
+	outSize <- fmt.Sprint(n)
 }
 
 func makedir() {
