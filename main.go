@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,7 +16,7 @@ func main() {
 	outString := make(chan string)
 	outInt := make(chan string)
 	var links = fetchLinks("https://api.github.com/repos/inciner8r/sample_data/contents/")
-
+	makedir()
 	fmt.Println(links)
 
 	for _, link := range links {
@@ -90,4 +91,14 @@ func newFunction(link links, out chan string, out1 chan string) {
 
 	out <- link.Name
 	out1 <- fmt.Sprint(n)
+}
+
+func makedir() {
+	path := "./downloads"
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		err := os.Mkdir(path, os.ModePerm)
+		if err != nil {
+			log.Println(err)
+		}
+	}
 }
