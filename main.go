@@ -8,22 +8,26 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sync"
 )
 
 func main() {
-	var wg sync.WaitGroup
 
+	outString := make(chan string)
+	outInt := make(chan string)
 	var links = fetchLinks("https://api.github.com/repos/inciner8r/sample_data/contents/")
 
 	fmt.Println(links)
 
 	for _, link := range links {
-		wg.Add(1)
 
-		go newFunction(link, wg)
+		go newFunction(link, outString, outInt)
 	}
-	wg.Wait()
+	for {
+		msg := <-outString
+		msgInt := <-outInt
+		fmt.Println("filename - " + msg + "\nsize - " + string(msgInt))
+	}
+
 }
 
 // generated with help of https://mholt.github.io/json-to-go/
@@ -62,7 +66,7 @@ func fetchLinks(link string) []links {
 	return linkslist
 }
 
-func newFunction(link links, wg sync.WaitGroup) {
+func newFunction(link links, out chan string, out1 chan string) {
 	fmt.Println("exec start")
 	output, err := os.Create("./downloads/" + link.Name)
 	if err != nil {
@@ -82,10 +86,8 @@ func newFunction(link links, wg sync.WaitGroup) {
 	if err != nil {
 		fmt.Println("Error while downloading", link.DownloadURL, "-", err)
 		log.Fatal()
-
 	}
 
-	fmt.Println(n, "bytes downloaded.")
-	wg.Done()
-
+	out <- link.Name
+	out1 <- fmt.Sprint(n)
 }
