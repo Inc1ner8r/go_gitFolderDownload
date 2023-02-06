@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -59,7 +58,7 @@ func fetchLinks(link string) []links {
 
 	defer res.Body.Close()
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 
 	if err := json.Unmarshal(body, &linkslist); err != nil {
 		fmt.Println("Can not unmarshal JSON")
