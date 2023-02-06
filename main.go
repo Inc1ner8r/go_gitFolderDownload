@@ -22,12 +22,15 @@ func main() {
 
 		go newFunction(link, outString, outInt)
 	}
-	for {
+	for i := 0; i < len(links); i++ {
 		msg := <-outString
 		msgInt := <-outInt
+
 		fmt.Println("filename - " + msg + "\nsize - " + string(msgInt))
 	}
-
+	close(outInt)
+	close(outString)
+	fmt.Println("here")
 }
 
 // generated with help of https://mholt.github.io/json-to-go/
